@@ -1,0 +1,4 @@
+release/
+limine/
+kernel-deps
+ovmf
