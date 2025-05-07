@@ -6,7 +6,6 @@ KERNEL_ELF          := bin/genoa-$(subst x86_64,x86-64,$(ARCH)).elf
 OBJDIR              := build
 SRCDIR              := .
 ARCHDIR             := arch/$(ARCH)
-CCRTDIR             := cc-runtime
 OUTDIRS             := $(OBJDIR) bin
 
 CC                  := cc
@@ -28,7 +27,6 @@ CFLAGS              += -Wall \
 
 CPPFLAGS            := -I $(SRCDIR) \
                        -I $(ARCHDIR) \
-                       -I $(CCRTDIR) \
                        -DLIMINE_API_REVISION=3 \
                        -MMD \
                        -MP
