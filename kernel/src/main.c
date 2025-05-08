@@ -56,8 +56,7 @@ void genoa_entry(void)
     /* Interrupts */
     gdt_init();
     idt_init();
-
-    __asm__ volatile("int $0x01");
+    load_idt();
 
     /* Memory initialization */
     pmm_init();
@@ -69,5 +68,6 @@ void genoa_entry(void)
     }
     *a = 0x32;
     info("Allocated physical page @ 0x%.16llx", (uint64_t)a);
+    pmm_release_pages(a, 1);
     hlt();
 }
