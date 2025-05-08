@@ -43,7 +43,7 @@ void pmm_init()
         struct limine_memmap_entry *e = memmap->entries[i];
         if (e->type == LIMINE_MEMMAP_USABLE && e->length >= bitmap_size)
         {
-            uint8_t *ptr = (uint8_t *)(e->base + hhdm_request.response->offset);
+            uint8_t *ptr = (uint8_t *)(e->base + hhdm_offset);
             bitmap = ptr;
             memset((void *)bitmap, 0xFF, bitmap_size);
             e->base += bitmap_size;
@@ -103,7 +103,7 @@ void *pmm_request_pages(size_t pages, bool higher_half)
 
             if (higher_half)
             {
-                return (void *)(hhdm_request.response->offset + (last_idx * PAGE_SIZE));
+                return (void *)(hhdm_offset + (last_idx * PAGE_SIZE));
             }
             else
             {

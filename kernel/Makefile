@@ -14,7 +14,7 @@ NASMFLAGS := -F dwarf -g
 
 CFLAGS += -g -O2 -pipe -Wall -Wextra -Werror -std=gnu11 -ffreestanding -fno-stack-protector -fno-stack-check \
 		  -fno-PIC -ffunction-sections -fdata-sections -m64 -march=x86-64 -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -mcmodel=kernel \
-		  -Wno-unused-variable -I $(INCDIR) -I $(SRCDIR) -MMD -MP
+		  -Wno-unused-variable -I $(INCDIR) -I $(SRCDIR) -MMD -MP -DLIMINE_API_REVISION=3
 
 LDFLAGS := -nostdlib -static -z max-page-size=0x1000 -Wl,--gc-sections \
            -T linker.ld -Wl,-m,elf_x86_64

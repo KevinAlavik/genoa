@@ -9,13 +9,19 @@
 #include <sys/gdt.h>
 #include <sys/idt.h>
 #include <mm/pmm.h>
+#include <mm/vmm.h>
 
 /* Public */
 struct flanterm_context *ft_ctx = NULL;
+uint64_t kernel_stack_top = 0;
+uint64_t hhdm_offset = 0;
+uint64_t __kernel_phys_base = 0;
+uint64_t __kernel_virt_base = 0;
 
 /* Kernel Entry */
 void genoa_entry(void)
 {
+    __asm__ volatile("movq %%rsp, %0" : "=r"(kernel_stack_top));
     if (!LIMINE_BASE_REVISION_SUPPORTED)
     {
         err("Unsupported limine base revision");
@@ -51,7 +57,9 @@ void genoa_entry(void)
     }
 
     info("Genoa Kernel v1.0.0");
-    info("HHDM Offset: 0x%.16llx", hhdm_request.response->offset);
+    hhdm_offset = hhdm_request.response->offset;
+    info("HHDM Offset: 0x%.16llx", hhdm_offset);
+    info("Kernel Stack: 0x%.16llx", kernel_stack_top);
 
     /* Interrupts */
     gdt_init();
@@ -69,5 +77,12 @@ void genoa_entry(void)
     *a = 0x32;
     info("Allocated physical page @ 0x%.16llx", (uint64_t)a);
     pmm_release_pages(a, 1);
+    info("Initialized PMM");
+
+    __kernel_phys_base = kernel_address_request.response->physical_base;
+    __kernel_virt_base = kernel_address_request.response->virtual_base;
+    vmm_init();
+    info("Initialized VMM");
+
     hlt();
 }

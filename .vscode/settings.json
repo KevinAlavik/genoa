@@ -5,6 +5,7 @@
         "portio.h": "c",
         "stdarg.h": "c",
         "log.h": "c",
-        "kprintf.h": "c"
+        "kprintf.h": "c",
+        "types.h": "c"
     }
 }
