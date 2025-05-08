@@ -1,4 +1,4 @@
-#include <arch/cpu.h>
+#include <sys/cpu.h>
 
 [[noreturn]] void hlt()
 {
@@ -6,6 +6,7 @@
         __asm__ volatile("hlt");
     __builtin_unreachable();
 }
+
 [[noreturn]] void hcf()
 {
     __asm__ volatile("cli");

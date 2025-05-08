@@ -1,9 +1,8 @@
 MAKEFLAGS += -rR
 .SUFFIXES:
 
-ARCH := x86_64
 QEMUFLAGS := -m 2G
-IMAGE_NAME := release/genoa-$(ARCH)
+IMAGE_NAME := release/genoa
 
 HOST_CC := cc
 HOST_CFLAGS := -g -O2 -pipe
@@ -12,16 +11,16 @@ HOST_CFLAGS := -g -O2 -pipe
 all: $(IMAGE_NAME).iso
 
 .PHONY: run
-run: $(IMAGE_NAME).iso ovmf/ovmf-code-$(ARCH).fd
-	@qemu-system-$(ARCH) \
+run: $(IMAGE_NAME).iso ovmf/ovmf-code-x86_64.fd
+	@qemu-system-x86_64 \
 		-M q35 \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
+		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-x86_64.fd,readonly=on \
 		-cdrom $(IMAGE_NAME).iso \
 		$(QEMUFLAGS)
 
-ovmf/ovmf-code-$(ARCH).fd:
+ovmf/ovmf-code-x86_64.fd:
 	@mkdir -p ovmf
-	@curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(ARCH).fd
+	@curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-x86_64.fd
 
 limine/limine:
 	@rm -rf limine
@@ -42,7 +41,7 @@ $(IMAGE_NAME).iso: limine/limine kernel
 	@rm -rf iso_root
 	@mkdir -p release
 	@mkdir -p iso_root/boot/limine iso_root/EFI/BOOT
-	@cp -v kernel/bin/genoa-$(subst x86_64,x86-64,$(ARCH)).elf iso_root/boot/
+	@cp -v kernel/bin/genoa.elf iso_root/boot/
 	@cp -v limine.conf iso_root/boot/limine/
 	@cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/boot/limine/
 	@cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
@@ -54,8 +53,6 @@ $(IMAGE_NAME).iso: limine/limine kernel
 		iso_root -o $(IMAGE_NAME).iso
 	@./limine/limine bios-install $(IMAGE_NAME).iso
 	@rm -rf iso_root
-
-
 
 .PHONY: clean
 clean:
