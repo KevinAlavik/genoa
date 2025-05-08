@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "limine.h": "c",
-        "boot.h": "c"
+        "boot.h": "c",
+        "portio.h": "c",
+        "stdarg.h": "c"
     }
 }

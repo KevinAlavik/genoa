@@ -1,7 +1,7 @@
 MAKEFLAGS += -rR
 .SUFFIXES:
 
-QEMUFLAGS := -m 2G
+QEMUFLAGS := -m 2G -debugcon stdio
 IMAGE_NAME := release/genoa
 
 HOST_CC := cc
