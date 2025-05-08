@@ -6,6 +6,9 @@
 #include <lib/flanterm/flanterm.h>
 #include <lib/flanterm/backends/fb.h>
 #include <util/log.h>
+#include <sys/gdt.h>
+#include <sys/idt.h>
+#include <mm/pmm.h>
 
 /* Public */
 struct flanterm_context *ft_ctx = NULL;
@@ -48,5 +51,23 @@ void genoa_entry(void)
     }
 
     info("Genoa Kernel v1.0.0");
+    info("HHDM Offset: 0x%.16llx", hhdm_request.response->offset);
+
+    /* Interrupts */
+    gdt_init();
+    idt_init();
+
+    __asm__ volatile("int $0x01");
+
+    /* Memory initialization */
+    pmm_init();
+    char *a = pmm_request_pages(1, true);
+    if (a == NULL)
+    {
+        err("Failed to allocate single physical page");
+        hcf();
+    }
+    *a = 0x32;
+    info("Allocated physical page @ 0x%.16llx", (uint64_t)a);
     hlt();
 }

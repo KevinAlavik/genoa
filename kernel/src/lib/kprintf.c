@@ -30,3 +30,24 @@ int kprintf(const char *fmt, ...)
     va_end(args);
     return length;
 }
+
+int snprintf(char *buf, size_t size, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    int length = vsnprintf(buf, size, fmt, args);
+    va_end(args);
+    return length;
+}
+
+int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
+{
+    int length = npf_vsnprintf(buf, size, fmt, args);
+
+    if (length >= (int)size)
+    {
+        buf[size - 1] = '\0';
+    }
+
+    return length;
+}
