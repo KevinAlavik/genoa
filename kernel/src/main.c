@@ -15,11 +15,13 @@ void genoa_entry(void)
 {
     if (!LIMINE_BASE_REVISION_SUPPORTED)
     {
+        err("Unsupported limine base revision");
         hlt();
     }
 
     if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1)
     {
+        err("Failed to get framebuffer");
         hlt();
     }
 
@@ -41,7 +43,7 @@ void genoa_entry(void)
 
     if (ft_ctx == NULL)
     {
-        kprintf("error: Failed to initialize flanterm context!\n");
+        err("Failed to initialize flanterm context!");
         hcf();
     }
 
