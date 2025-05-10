@@ -80,10 +80,6 @@ void vmm_map(uint64_t *pagemap, uint64_t virt, uint64_t phys, uint64_t flags)
     uint64_t *pml2 = get_or_alloc_table(pml3, pml3_idx, flags);
     uint64_t *pml1 = get_or_alloc_table(pml2, pml2_idx, flags);
 
-    // if (!(pml1[pml1_idx] & VMM_PRESENT))
-    //     pml1[pml1_idx] = (phys & PAGE_MASK) | flags;
-    // else
-    //     pml1[pml1_idx] = (phys & ~PAGE_MASK) | ((phys & PAGE_MASK) | flags);
     pml1[pml1_idx] = phys | flags;
 }
 
@@ -177,7 +173,28 @@ void vmm_init()
     {
         vmm_map(kernel_pagemap, (uint64_t)HIGHER_HALF(gb4), gb4, VMM_PRESENT | VMM_WRITE);
     }
-    info("Mapped HHDM");
+    info("Mapped HHDM (first 4GB)");
+
+    if (memmap_request.response)
+    {
+        struct limine_memmap_response *memmap = memmap_request.response;
+        for (uint64_t i = 0; i < memmap->entry_count; i++)
+        {
+            struct limine_memmap_entry *entry = memmap->entries[i];
+            uint64_t base = ALIGN_DOWN(entry->base, PAGE_SIZE);
+            uint64_t end = ALIGN_UP(entry->base + entry->length, PAGE_SIZE);
+
+            for (uint64_t addr = base; addr < end; addr += PAGE_SIZE)
+            {
+                vmm_map(kernel_pagemap, (uint64_t)HIGHER_HALF(addr), addr, VMM_PRESENT | VMM_WRITE | VMM_NX);
+            }
+            info("Mapped memory map entry %d: base=0x%.16llx, length=0x%.16llx, type=%d", i, entry->base, entry->length, entry->type);
+        }
+    }
+    else
+    {
+        warn("No memory map response from Limine, skipping entry mapping");
+    }
 
     vmm_switch_pagemap(kernel_pagemap);
 }
