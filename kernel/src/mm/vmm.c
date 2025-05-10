@@ -83,6 +83,29 @@ void vmm_map(uint64_t *pagemap, uint64_t virt, uint64_t phys, uint64_t flags)
     pml1[pml1_idx] = phys | flags;
 }
 
+void vmm_unmap(uint64_t *pagemap, uint64_t virt)
+{
+    uint64_t pml4_idx = page_index(virt, PML4_SHIFT);
+    if (!(pagemap[pml4_idx] & VMM_PRESENT))
+        return;
+
+    uint64_t *pml3 = get_table(pagemap, pml4_idx);
+    uint64_t pml3_idx = page_index(virt, PML3_SHIFT);
+    if (!(pml3[pml3_idx] & VMM_PRESENT))
+        return;
+
+    uint64_t *pml2 = get_table(pml3, pml3_idx);
+    uint64_t pml2_idx = page_index(virt, PML2_SHIFT);
+    if (!(pml2[pml2_idx] & VMM_PRESENT))
+        return;
+
+    uint64_t *pml1 = get_table(pml2, pml2_idx);
+    uint64_t pml1_idx = page_index(virt, PML1_SHIFT);
+
+    pml1[pml1_idx] = 0;
+    __asm__ volatile("invlpg (%0)" ::"r"(virt) : "memory");
+}
+
 uint64_t *vmm_new_pagemap()
 {
     uint64_t *pagemap = (uint64_t *)HIGHER_HALF(pmm_request_page());

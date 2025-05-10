@@ -23,6 +23,8 @@ void vmm_init();
 void vmm_switch_pagemap(uint64_t *pagemap);
 uint64_t *vmm_new_pagemap();
 void vmm_map(uint64_t *pagemap, uint64_t virt, uint64_t phys, uint64_t flags);
+void vmm_unmap(uint64_t *pagemap, uint64_t virt);
+uint64_t virt_to_phys(uint64_t *pagemap, uint64_t virt);
 void vmm_destroy_pagemap(uint64_t *pagemap);
 
 #endif // VMM_H

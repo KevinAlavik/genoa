@@ -6,6 +6,8 @@
         "stdarg.h": "c",
         "log.h": "c",
         "kprintf.h": "c",
-        "types.h": "c"
+        "types.h": "c",
+        "vma.h": "c",
+        "string.h": "c"
     }
 }

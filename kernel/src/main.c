@@ -10,6 +10,8 @@
 #include <sys/idt.h>
 #include <mm/pmm.h>
 #include <mm/vmm.h>
+#include <mm/vma.h>
+#include <mm/kmalloc.h>
 
 /* Public */
 struct flanterm_context *ft_ctx = NULL;
@@ -17,6 +19,7 @@ uint64_t kernel_stack_top = 0;
 uint64_t hhdm_offset = 0;
 uint64_t __kernel_phys_base = 0;
 uint64_t __kernel_virt_base = 0;
+vma_context_t *kernel_vma_context = NULL;
 
 /* Kernel Entry */
 void genoa_entry(void)
@@ -74,7 +77,7 @@ void genoa_entry(void)
         err("Failed to allocate single physical page");
         hcf();
     }
-    *a = 0x32;
+    *a = 32;
     info("Allocated physical page @ 0x%.16llx", (uint64_t)a);
     pmm_release_pages(a, 1);
     info("Initialized PMM");
@@ -83,6 +86,36 @@ void genoa_entry(void)
     __kernel_virt_base = kernel_address_request.response->virtual_base;
     vmm_init();
     info("Initialized VMM");
+
+    kernel_vma_context = vma_create_context(kernel_pagemap);
+    if (kernel_vma_context == NULL)
+    {
+        err("Failed to create kernel VMA context");
+        hcf();
+    }
+
+    char *b = vma_alloc(kernel_vma_context, 1, VMM_PRESENT | VMM_WRITE);
+    if (b == NULL)
+    {
+        err("Failed to allocate single virtual page");
+        hcf();
+    }
+    *b = 32;
+    info("Allocated virtual page @ 0x%.16llx", (uint64_t)b);
+    vma_free(kernel_vma_context, b);
+    info("Initialized VMA");
+
+    /* Test heap */
+    char *c = kmalloc(1);
+    if (c == NULL)
+    {
+        err("Failed to allocate single byte using heap");
+        hcf();
+    }
+    *c = 32;
+    info("Allocated single byte using heap @ 0x%.16llx", (uint64_t)c);
+    kfree(c);
+    info("Initialized heap");
 
     hlt();
 }
