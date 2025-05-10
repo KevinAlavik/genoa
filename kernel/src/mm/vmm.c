@@ -9,6 +9,8 @@
 uint64_t *kernel_pagemap;
 
 /* External symbols, defined in linker script (hopefully) */
+extern char __limine_requests_start[];
+extern char __limine_requests_end[];
 extern char __text_start[];
 extern char __text_end[];
 extern char __rodata_start[];
@@ -22,7 +24,7 @@ extern char __data_end[];
 /* Helpers */
 static inline uint64_t page_index(uint64_t virt, uint64_t shift)
 {
-    return (virt >> shift) & PAGE_INDEX_MASK;
+    return (virt & (uint64_t)0x1ff << shift) >> shift;
 }
 
 static inline uint64_t *get_table(uint64_t *table, uint64_t index)
@@ -34,14 +36,11 @@ static inline uint64_t *get_or_alloc_table(uint64_t *table, uint64_t index, uint
 {
     if (!(table[index] & VMM_PRESENT))
     {
-        void *page = pmm_request_pages(1, false);
-        memset((void *)HIGHER_HALF((uint64_t)page), 0, 0x1000);
-        table[index] = ((uint64_t)page & PAGE_MASK) | flags;
+        uint64_t *pml = HIGHER_HALF(pmm_request_page());
+        memset(pml, 0, PAGE_SIZE);
+        table[index] = (uint64_t)PHYSICAL(pml);
     }
-    else
-    {
-        table[index] |= (flags & ~VMM_NX) & 0xFF;
-    }
+    table[index] |= flags & 0xFF;
     return (uint64_t *)HIGHER_HALF(table[index] & PAGE_MASK);
 }
 
@@ -81,10 +80,11 @@ void vmm_map(uint64_t *pagemap, uint64_t virt, uint64_t phys, uint64_t flags)
     uint64_t *pml2 = get_or_alloc_table(pml3, pml3_idx, flags);
     uint64_t *pml1 = get_or_alloc_table(pml2, pml2_idx, flags);
 
-    if (!(pml1[pml1_idx] & VMM_PRESENT))
-        pml1[pml1_idx] = (phys & PAGE_MASK) | flags;
-    else
-        pml1[pml1_idx] = (phys & ~PAGE_MASK) | ((phys & PAGE_MASK) | flags);
+    // if (!(pml1[pml1_idx] & VMM_PRESENT))
+    //     pml1[pml1_idx] = (phys & PAGE_MASK) | flags;
+    // else
+    //     pml1[pml1_idx] = (phys & ~PAGE_MASK) | ((phys & PAGE_MASK) | flags);
+    pml1[pml1_idx] = phys | flags;
 }
 
 uint64_t *vmm_new_pagemap()
@@ -121,7 +121,6 @@ void vmm_destroy_pagemap(uint64_t *pagemap)
 
 void vmm_switch_pagemap(uint64_t *new_pagemap)
 {
-
     __asm__ volatile("movq %0, %%cr3" ::"r"(PHYSICAL((uint64_t)new_pagemap)));
 }
 
@@ -134,6 +133,7 @@ void vmm_init()
         info("error: Failed to allocate page for kernel pagemap, halting");
         hcf();
     }
+    memset(kernel_pagemap, 0, PAGE_SIZE);
 
     uint64_t kvirt = kernel_address_request.response->virtual_base;
     uint64_t kphys = kernel_address_request.response->physical_base;
@@ -148,6 +148,12 @@ void vmm_init()
         vmm_map(kernel_pagemap, stack, (uint64_t)PHYSICAL(stack), VMM_PRESENT | VMM_WRITE | VMM_NX);
     }
     info("Mapped kernel stack");
+
+    for (uint64_t reqs = ALIGN_DOWN(__limine_requests_start, PAGE_SIZE); reqs < ALIGN_UP(__limine_requests_end, PAGE_SIZE); reqs += PAGE_SIZE)
+    {
+        vmm_map(kernel_pagemap, reqs, reqs - kvirt + kphys, VMM_PRESENT | VMM_WRITE);
+    }
+    info("Mapped Limine Requests region.");
 
     for (uint64_t text = ALIGN_DOWN(__text_start, PAGE_SIZE); text < ALIGN_UP(__text_end, PAGE_SIZE); text += PAGE_SIZE)
     {
@@ -173,5 +179,5 @@ void vmm_init()
     }
     info("Mapped HHDM");
 
-    // vmm_switch_pagemap(kernel_pagemap);
+    vmm_switch_pagemap(kernel_pagemap);
 }
