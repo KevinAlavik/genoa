@@ -38,7 +38,7 @@ static inline uint64_t *get_or_alloc_table(uint64_t *table, uint64_t index, uint
     {
         uint64_t *pml = HIGHER_HALF(pmm_request_page());
         memset(pml, 0, PAGE_SIZE);
-        table[index] = (uint64_t)PHYSICAL(pml);
+        table[index] = (uint64_t)PHYSICAL(pml) | 0b111;
     }
     table[index] |= flags & 0xFF;
     return (uint64_t *)HIGHER_HALF(table[index] & PAGE_MASK);
@@ -169,12 +169,6 @@ void vmm_init()
     }
     info("Mapped .data");
 
-    for (uint64_t gb4 = 0; gb4 < 0x100000000; gb4 += PAGE_SIZE)
-    {
-        vmm_map(kernel_pagemap, (uint64_t)HIGHER_HALF(gb4), gb4, VMM_PRESENT | VMM_WRITE);
-    }
-    info("Mapped HHDM (first 4GB)");
-
     if (memmap_request.response)
     {
         struct limine_memmap_response *memmap = memmap_request.response;
@@ -195,6 +189,12 @@ void vmm_init()
     {
         warn("No memory map response from Limine, skipping entry mapping");
     }
+
+    for (uint64_t gb4 = 0; gb4 < 0x100000000; gb4 += PAGE_SIZE)
+    {
+        vmm_map(kernel_pagemap, (uint64_t)HIGHER_HALF(gb4), gb4, VMM_PRESENT | VMM_WRITE);
+    }
+    info("Mapped HHDM");
 
     vmm_switch_pagemap(kernel_pagemap);
 }
