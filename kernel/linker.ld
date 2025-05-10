@@ -42,14 +42,13 @@ SECTIONS
     .data : {
         __data_start = .;
         *(.data .data.*)
-        __data_end = .;
     } :data
 
 
     .bss : {
         *(.bss .bss.*)
         *(COMMON)
-        data_end = .;
+        __data_end = .;
     } :data
 
     /DISCARD/ : {
