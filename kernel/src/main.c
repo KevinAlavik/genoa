@@ -12,6 +12,8 @@
 #include <mm/vmm.h>
 #include <mm/vma.h>
 #include <mm/kmalloc.h>
+#include <sys/pic.h>
+#include <dev/timer/pit.h>
 
 /* Public */
 struct flanterm_context *ft_ctx = NULL;
@@ -20,6 +22,12 @@ uint64_t hhdm_offset = 0;
 uint64_t __kernel_phys_base = 0;
 uint64_t __kernel_virt_base = 0;
 vma_context_t *kernel_vma_context = NULL;
+
+/* Timer test */
+void tick(struct register_ctx *)
+{
+    info("tick");
+}
 
 /* Kernel Entry */
 void genoa_entry(void)
@@ -69,6 +77,10 @@ void genoa_entry(void)
     idt_init();
     load_idt();
 
+    __asm__ volatile("cli");
+    pic_init();
+    __asm__ volatile("sti");
+
     /* Memory initialization */
     pmm_init();
     char *a = pmm_request_pages(1, true);
@@ -116,6 +128,9 @@ void genoa_entry(void)
     info("Allocated single byte using heap @ 0x%.16llx", (uint64_t)c);
     kfree(c);
     info("Initialized heap");
+
+    /* Start the timer */
+    pit_init(tick);
 
     hlt();
 }

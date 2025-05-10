@@ -208,10 +208,6 @@ void vmm_init()
             info("Mapped memory map entry %d: base=0x%.16llx, length=0x%.16llx, type=%d", i, entry->base, entry->length, entry->type);
         }
     }
-    else
-    {
-        warn("No memory map response from Limine, skipping entry mapping");
-    }
 
     for (uint64_t gb4 = 0; gb4 < 0x100000000; gb4 += PAGE_SIZE)
     {

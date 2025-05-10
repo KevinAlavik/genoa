@@ -8,6 +8,7 @@
         "kprintf.h": "c",
         "types.h": "c",
         "vma.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "pic.h": "c"
     }
 }
