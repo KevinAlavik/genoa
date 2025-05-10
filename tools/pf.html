@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>x86_64 Page Fault Error Code Decoder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        input,
+        button {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        details {
+            margin: 10px 0;
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>x86_64 Page Fault Error Code Decoder</h1>
+    </header>
+    <main>
+        <section>
+            <label for="errorCode">Enter Error Code (e.g., 0x15, 0b10101, 21):</label>
+            <input type="text" id="errorCode" autofocus>
+            <button type="button" onclick="decodeError()">Decode</button>
+            <pre id="result">Enter an error code to decode.</pre>
+        </section>
+        <section>
+            <details>
+                <summary>About x86_64 Page Fault Error Codes</summary>
+                <p>An x86_64 page fault error code is a 32-bit value where specific bits describe the cause of a page
+                    fault. The table below explains the relevant bits:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bit</th>
+                            <th>Name</th>
+                            <th>Meaning (0)</th>
+                            <th>Meaning (1)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>0</td>
+                            <td>P (Present)</td>
+                            <td>Page not present</td>
+                            <td>Page-protection violation</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>W/R (Write/Read)</td>
+                            <td>Read access</td>
+                            <td>Write access</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>U/S (User/Supervisor)</td>
+                            <td>Supervisor mode</td>
+                            <td>User mode (CPL=3)</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>RSVD (Reserved)</td>
+                            <td>No reserved bit violation</td>
+                            <td>Reserved bit violation</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>I/D (Instruction/Data)</td>
+                            <td>Data access</td>
+                            <td>Instruction fetch</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>PK (Protection Key)</td>
+                            <td>No protection key violation</td>
+                            <td>Protection key violation</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>SS (Shadow Stack)</td>
+                            <td>No shadow stack access</td>
+                            <td>Shadow stack access</td>
+                        </tr>
+                        <tr>
+                            <td>15</td>
+                            <td>SGX (Software Guard Extensions)</td>
+                            <td>No SGX violation</td>
+                            <td>SGX violation</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </details>
+        </section>
+        <section>
+            <h2>Bit Status</h2>
+            <table id="bitTable">
+                <thead>
+                    <tr>
+                        <th>Bit 15 (SGX)</th>
+                        <th>Bit 6 (SS)</th>
+                        <th>Bit 5 (PK)</th>
+                        <th>Bit 4 (I/D)</th>
+                        <th>Bit 3 (RSVD)</th>
+                        <th>Bit 2 (U/S)</th>
+                        <th>Bit 1 (W/R)</th>
+                        <th>Bit 0 (P)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="bit15">0</td>
+                        <td id="bit6">0</td>
+                        <td id="bit5">0</td>
+                        <td id="bit4">0</td>
+                        <td id="bit3">0</td>
+                        <td id="bit2">0</td>
+                        <td id="bit1">0</td>
+                        <td id="bit0">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        function decodeError() {
+            const input = document.getElementById('errorCode').value.trim();
+            const resultDiv = document.getElementById('result');
+            let errorCode;
+
+            try {
+                if (input.startsWith('0x')) {
+                    errorCode = parseInt(input, 16);
+                } else if (input.startsWith('0b')) {
+                    errorCode = parseInt(input.slice(2), 2);
+                } else {
+                    errorCode = parseInt(input, 10);
+                }
+
+                if (isNaN(errorCode) || errorCode < 0) {
+                    throw new Error('Invalid error code');
+                }
+
+                const present = (errorCode & 0x1) ? 'protected page' : 'non-present page';
+                const access = (errorCode & 0x2) ? 'write' : 'read';
+                const mode = (errorCode & 0x4) ? 'user' : 'supervisor';
+                const type = (errorCode & 0x10) ? 'instruction fetch' : 'data access';
+                const reserved = (errorCode & 0x8) ? '\n- Reserved bit violation detected' : '';
+                const protectionKey = (errorCode & 0x20) ? '\n- Protection key violation' : '';
+                const shadowStack = (errorCode & 0x40) ? '\n- Shadow stack access' : '';
+                const sgx = (errorCode & 0x8000) ? '\n- SGX violation' : '';
+
+                const binary = (errorCode & 0x806F).toString(2).padStart(16, '0');
+                const hex = '0x' + (errorCode & 0x806F).toString(16).padStart(4, '0');
+                const description = `Page Fault Details:
+- Cause: Attempted to ${access} to a ${present}
+- Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)} mode
+- Access Type: ${type.charAt(0).toUpperCase() + type.slice(1)}${reserved}${protectionKey}${shadowStack}${sgx}
+- Error Code: ${hex} (Binary: ${binary})`;
+                resultDiv.textContent = description;
+
+                document.getElementById('bit0').textContent = errorCode & 0x1;
+                document.getElementById('bit1').textContent = (errorCode & 0x2) >> 1;
+                document.getElementById('bit2').textContent = (errorCode & 0x4) >> 2;
+                document.getElementById('bit3').textContent = (errorCode & 0x8) >> 3;
+                document.getElementById('bit4').textContent = (errorCode & 0x10) >> 4;
+                document.getElementById('bit5').textContent = (errorCode & 0x20) >> 5;
+                document.getElementById('bit6').textContent = (errorCode & 0x40) >> 6;
+                document.getElementById('bit15').textContent = (errorCode & 0x8000) >> 15;
+
+                for (let i of [0, 1, 2, 3, 4, 5, 6, 15]) {
+                    const bitCell = document.getElementById(`bit${i}`);
+                    bitCell.style.backgroundColor = bitCell.textContent === '1' ? '#28a745' : '';
+                    bitCell.style.color = bitCell.textContent === '1' ? 'white' : '';
+                }
+            } catch (e) {
+                resultDiv.textContent = `Error: Invalid input. Please enter a valid code (e.g., 0x15, 0b10101, or 21).`;
+                for (let i of [0, 1, 2, 3, 4, 5, 6, 15]) {
+                    const bitCell = document.getElementById(`bit${i}`);
+                    bitCell.textContent = '0';
+                    bitCell.style.backgroundColor = '';
+                    bitCell.style.color = '';
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
