@@ -29,13 +29,15 @@ void map_range_to_pagemap(uint64_t *dest_pagemap, uint64_t *src_pagemap, uint64_
 
 void scheduler_init()
 {
-    procs = (pcb_t **)kcalloc(PROC_MAX_PROCS, sizeof(pcb_t *));
+    info("Allocating process table for %d processes (%lu bytes)",
+         PROC_MAX_PROCS, PROC_MAX_PROCS * sizeof(pcb_t *));
+    procs = (pcb_t **)kmalloc(sizeof(pcb_t *) * PROC_MAX_PROCS);
     if (!procs)
     {
         err("Failed to allocate scheduler process table");
         kpanic(NULL, "Scheduler initialization failed");
     }
-
+    info("Process table allocated at %p", procs);
     proc_count = 0;
     current_pid = 0;
     spinlock_init(&scheduler_lock);

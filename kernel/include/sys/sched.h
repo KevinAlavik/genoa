@@ -6,7 +6,7 @@
 #include <mm/vma.h>
 
 #define PROC_DEFAULT_TIME 1 // Roughly 20ms, timer is expected to run at roughly 200hz
-#define PROC_MAX_PROCS 1024 // Should be plenty
+#define PROC_MAX_PROCS 2048 // Should be plenty
 
 typedef enum
 {

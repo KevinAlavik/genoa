@@ -8,7 +8,7 @@
 typedef struct vma_region
 {
     uint64_t start;
-    uint64_t size;
+    uint64_t pages;
     uint64_t flags;
     struct vma_region *next;
     struct vma_region *prev;
@@ -22,8 +22,7 @@ typedef struct vma_context
 
 vma_context_t *vma_create_context(uint64_t *pagemap);
 void vma_destroy_context(vma_context_t *ctx);
-void *vma_alloc(vma_context_t *ctx, uint64_t size, uint64_t flags);
+void *vma_alloc(vma_context_t *ctx, uint64_t pages, uint64_t flags);
 void vma_free(vma_context_t *ctx, void *ptr);
-void vma_dump_context(vma_context_t *ctx);
 
 #endif // VMA_H

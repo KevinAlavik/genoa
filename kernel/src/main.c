@@ -11,10 +11,10 @@
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 #include <mm/vma.h>
-#include <mm/kmalloc.h>
 #include <sys/pic.h>
 #include <dev/timer/pit.h>
 #include <sys/sched.h>
+#include <mm/kmalloc.h>
 
 /* Public */
 struct flanterm_context *ft_ctx = NULL;
@@ -123,7 +123,7 @@ void genoa_entry(void)
     vma_free(kernel_vma_context, b);
     info("Initialized VMA");
 
-    /* Test heap */
+    /* Heap stuff */
     char *c = kmalloc(1);
     if (c == NULL)
     {
