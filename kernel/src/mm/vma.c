@@ -150,8 +150,6 @@ void *vma_alloc(vma_context_t *ctx, uint64_t size, uint64_t flags)
         ctx->root = new_region;
     }
 
-    info("Allocated VMA region: start=0x%.16llx, size=0x%.16llx, flags=0x%.16llx",
-         start_addr, size, flags);
     return (void *)start_addr;
 }
 
@@ -212,7 +210,6 @@ void vma_free(vma_context_t *ctx, void *ptr)
     }
 
     pmm_release_pages((void *)PHYSICAL(region), 1);
-    info("Freed VMA region at 0x%.16llx", addr);
 }
 
 void vma_dump_context(vma_context_t *ctx)

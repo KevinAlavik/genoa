@@ -14,6 +14,7 @@
 #include <mm/kmalloc.h>
 #include <sys/pic.h>
 #include <dev/timer/pit.h>
+#include <sys/sched.h>
 
 /* Public */
 struct flanterm_context *ft_ctx = NULL;
@@ -24,9 +25,14 @@ uint64_t __kernel_virt_base = 0;
 vma_context_t *kernel_vma_context = NULL;
 
 /* Scheduler test */
-void tick(struct register_ctx *)
+void tick(struct register_ctx *c)
 {
-    info("timer ticked!");
+    scheduler_tick(c);
+}
+
+void test_proc()
+{
+    info("Hello from process: %d", scheduler_get_current()->pid);
 }
 
 /* Kernel Entry */
@@ -130,6 +136,8 @@ void genoa_entry(void)
     info("Initialized heap");
 
     /* Start the timer */
+    scheduler_init();
+    scheduler_spawn(false, test_proc, kernel_pagemap);
     pit_init(tick);
 
     hlt();
