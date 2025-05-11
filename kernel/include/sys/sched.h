@@ -8,8 +8,11 @@
 #define PROC_DEFAULT_TIME 1 // Roughly 20ms, timer is expected to run at roughly 200hz
 #define PROC_MAX_PROCS 2048 // Should be plenty
 
+#define SCHEDULER_RETURN_CORRUPT 0xdeadbeef
+
 typedef enum
 {
+    PROCESS_CORRUPT = 0,
     PROCESS_READY,
     PROCESS_RUNNING,
     PROCESS_WAITING,

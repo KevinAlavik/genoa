@@ -134,6 +134,11 @@ uint64_t *vmm_new_pagemap()
 
 void vmm_destroy_pagemap(uint64_t *pagemap)
 {
+    if (pagemap == 0)
+    {
+        warn("Tried to destroy pagemap at address 0, skipping");
+        return;
+    }
     pmm_release_pages((void *)PHYSICAL(pagemap), 1);
     warn("Destroyed pagemap at 0x%.16llx", (uint64_t)pagemap);
 }

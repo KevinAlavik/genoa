@@ -32,7 +32,7 @@ void tick(struct register_ctx *c)
 
 void test_proc()
 {
-    info("Hello from process: %d", scheduler_get_current()->pid);
+    info("Hello from proc (pid %d)", scheduler_get_current()->pid);
 }
 
 /* Kernel Entry */
@@ -137,6 +137,7 @@ void genoa_entry(void)
 
     /* Start the timer */
     scheduler_init();
+    info("Initialized scheduler");
     scheduler_spawn(false, test_proc, kernel_pagemap);
     pit_init(tick);
 

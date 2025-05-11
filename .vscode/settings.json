@@ -11,6 +11,7 @@
         "string.h": "c",
         "pic.h": "c",
         "kmalloc.h": "c",
-        "sched.h": "c"
+        "sched.h": "c",
+        "cstdlib": "c"
     }
 }
