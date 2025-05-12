@@ -1,3 +1,4 @@
+#define LOG_MODULE "paging"
 #include <mm/vmm.h>
 #include <boot/boot.h>
 #include <lib/string.h>
@@ -19,7 +20,7 @@ extern char __data_start[];
 extern char __data_end[];
 
 /* debug */
-#define PRINT_SECTION(name, start, end) info("section=%s, start=0x%.16llx, end=0x%.16llx, size=%d", name, start, end, end - start)
+#define PRINT_SECTION(name, start, end) mem("section=%s, start=0x%.16llx, end=0x%.16llx, size=%d", name, start, end, end - start)
 
 /* Helpers */
 static inline uint64_t page_index(uint64_t virt, uint64_t shift)
@@ -171,31 +172,31 @@ void vmm_init()
     {
         vmm_map(kernel_pagemap, stack, (uint64_t)PHYSICAL(stack), VMM_PRESENT | VMM_WRITE | VMM_NX);
     }
-    info("Mapped kernel stack");
+    mem("Mapped kernel stack");
 
     for (uint64_t reqs = ALIGN_DOWN(__limine_requests_start, PAGE_SIZE); reqs < ALIGN_UP(__limine_requests_end, PAGE_SIZE); reqs += PAGE_SIZE)
     {
         vmm_map(kernel_pagemap, reqs, reqs - kvirt + kphys, VMM_PRESENT | VMM_WRITE);
     }
-    info("Mapped Limine Requests region.");
+    mem("Mapped Limine Requests region.");
 
     for (uint64_t text = ALIGN_DOWN(__text_start, PAGE_SIZE); text < ALIGN_UP(__text_end, PAGE_SIZE); text += PAGE_SIZE)
     {
         vmm_map(kernel_pagemap, text, text - kvirt + kphys, VMM_PRESENT);
     }
-    info("Mapped .text");
+    mem("Mapped .text");
 
     for (uint64_t rodata = ALIGN_DOWN(__rodata_start, PAGE_SIZE); rodata < ALIGN_UP(__rodata_end, PAGE_SIZE); rodata += PAGE_SIZE)
     {
         vmm_map(kernel_pagemap, rodata, rodata - kvirt + kphys, VMM_PRESENT | VMM_NX);
     }
-    info("Mapped .rodata");
+    mem("Mapped .rodata");
 
     for (uint64_t data = ALIGN_DOWN(__data_start, PAGE_SIZE); data < ALIGN_UP(__data_end, PAGE_SIZE); data += PAGE_SIZE)
     {
         vmm_map(kernel_pagemap, data, data - kvirt + kphys, VMM_PRESENT | VMM_WRITE | VMM_NX);
     }
-    info("Mapped .data");
+    mem("Mapped .data");
 
     if (memmap_request.response)
     {
@@ -210,7 +211,7 @@ void vmm_init()
             {
                 vmm_map(kernel_pagemap, (uint64_t)HIGHER_HALF(addr), addr, VMM_PRESENT | VMM_WRITE | VMM_NX);
             }
-            info("Mapped memory map entry %d: base=0x%.16llx, length=0x%.16llx, type=%d", i, entry->base, entry->length, entry->type);
+            mem("Mapped memory map entry %d: base=0x%.16llx, length=0x%.16llx, type=%d", i, entry->base, entry->length, entry->type);
         }
     }
 
@@ -218,7 +219,7 @@ void vmm_init()
     {
         vmm_map(kernel_pagemap, (uint64_t)HIGHER_HALF(gb4), gb4, VMM_PRESENT | VMM_WRITE);
     }
-    info("Mapped HHDM");
+    mem("Mapped HHDM");
 
     vmm_switch_pagemap(kernel_pagemap);
 }

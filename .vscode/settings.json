@@ -12,6 +12,7 @@
         "pic.h": "c",
         "kmalloc.h": "c",
         "sched.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "pit.h": "c"
     }
 }
