@@ -1,3 +1,4 @@
+#define LOG_MODULE "vma"
 #include <mm/vma.h>
 #include <lib/string.h>
 #include <util/log.h>
@@ -8,8 +9,6 @@
 
 vma_context_t *vma_create_context(uint64_t *pagemap)
 {
-    info("Creating VMA context with pagemap: 0x%.16llx", (uint64_t)pagemap);
-
     vma_context_t *ctx = (vma_context_t *)HIGHER_HALF(pmm_request_page());
     if (ctx == NULL)
     {
@@ -25,13 +24,10 @@ vma_context_t *vma_create_context(uint64_t *pagemap)
         pmm_release_pages((void *)PHYSICAL(ctx), 1);
         return NULL;
     }
-    info("Allocated root region at 0x%.16llx", (uint64_t)ctx->root);
 
     ctx->pagemap = pagemap;
     ctx->root->start = VMA_MIN_ADDRESS;
     ctx->root->pages = 0;
-
-    info("VMA context created at 0x%.16llx with root region at 0x%.16llx", (uint64_t)ctx, (uint64_t)ctx->root);
     return ctx;
 }
 

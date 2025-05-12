@@ -13,7 +13,6 @@
 #include <mm/vma.h>
 #include <sys/pic.h>
 #include <dev/timer/pit.h>
-#include <sys/sched.h>
 #include <mm/kmalloc.h>
 
 /* Public */
@@ -25,14 +24,9 @@ uint64_t __kernel_virt_base = 0;
 vma_context_t *kernel_vma_context = NULL;
 
 /* Scheduler test */
-void tick(struct register_ctx *c)
+void tick(struct register_ctx *)
 {
-    scheduler_tick(c);
-}
-
-void test_proc()
-{
-    info("Hello from proc (pid %d)", scheduler_get_current()->pid);
+    trace_module("timer", "tick");
 }
 
 /* Kernel Entry */
@@ -75,8 +69,8 @@ void genoa_entry(void)
 
     info("Genoa Kernel v1.0.0");
     hhdm_offset = hhdm_request.response->offset;
-    info("HHDM Offset: 0x%.16llx", hhdm_offset);
-    info("Kernel Stack: 0x%.16llx", kernel_stack_top);
+    trace("HHDM Offset: 0x%.16llx", hhdm_offset);
+    trace("Kernel Stack: 0x%.16llx", kernel_stack_top);
 
     /* Interrupts */
     gdt_init();
@@ -96,14 +90,12 @@ void genoa_entry(void)
         hcf();
     }
     *a = 32;
-    info("Allocated physical page @ 0x%.16llx", (uint64_t)a);
+    trace("Allocated physical page @ 0x%.16llx", (uint64_t)a);
     pmm_release_pages(a, 1);
-    info("Initialized PMM");
 
     __kernel_phys_base = kernel_address_request.response->physical_base;
     __kernel_virt_base = kernel_address_request.response->virtual_base;
     vmm_init();
-    info("Initialized VMM");
 
     kernel_vma_context = vma_create_context(kernel_pagemap);
     if (kernel_vma_context == NULL)
@@ -119,9 +111,8 @@ void genoa_entry(void)
         hcf();
     }
     *b = 32;
-    info("Allocated virtual page @ 0x%.16llx", (uint64_t)b);
+    trace("Allocated virtual page @ 0x%.16llx", (uint64_t)b);
     vma_free(kernel_vma_context, b);
-    info("Initialized VMA");
 
     /* Heap stuff */
     char *c = kmalloc(1);
@@ -131,14 +122,10 @@ void genoa_entry(void)
         hcf();
     }
     *c = 32;
-    info("Allocated single byte using heap @ 0x%.16llx", (uint64_t)c);
+    trace("Allocated single byte using heap @ 0x%.16llx", (uint64_t)c);
     kfree(c);
-    info("Initialized heap");
 
     /* Start the timer */
-    scheduler_init();
-    info("Initialized scheduler");
-    scheduler_spawn(false, test_proc, kernel_pagemap);
     pit_init(tick);
 
     hlt();

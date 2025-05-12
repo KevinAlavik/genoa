@@ -1,3 +1,4 @@
+#define LOG_MODULE "pmm"
 #include <mm/pmm.h>
 #include <boot/boot.h>
 #include <util/log.h>
@@ -48,7 +49,7 @@ void pmm_init(void)
             if (top > high)
                 high = top;
             free_pages += e->length / PAGE_SIZE;
-            info("Usable memory region: 0x%.16llx -> 0x%.16llx", e->base, e->base + e->length);
+            mem("Usable memory region: 0x%.16llx -> 0x%.16llx", e->base, e->base + e->length);
         }
     }
 

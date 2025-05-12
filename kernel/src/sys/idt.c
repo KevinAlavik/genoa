@@ -1,8 +1,9 @@
+#define LOG_MODULE "intr"
 #include <sys/idt.h>
 #include <lib/string.h>
 #include <stdarg.h>
 #include <sys/cpu.h>
-#include <lib/kprintf.h>
+#include <util/log.h>
 
 struct idt_entry __attribute__((aligned(16))) idt_descriptor[256] = {0};
 idt_intr_handler real_handlers[256] = {0};
@@ -142,16 +143,16 @@ void kpanic(struct register_ctx *ctx, const char *fmt, ...)
         }
     }
 
-    kprintf("\n=== Kernel panic: '%s' @ 0x%.16llx ===\n", buf, regs.rip);
-    kprintf("Registers:\n");
-    kprintf("  rax: 0x%.16llx  rbx:    0x%.16llx  rcx: 0x%.16llx  rdx: 0x%.16llx\n", regs.rax, regs.rbx, regs.rcx, regs.rdx);
-    kprintf("  rsi: 0x%.16llx  rdi:    0x%.16llx  rbp: 0x%.16llx  rsp: 0x%.16llx\n", regs.rsi, regs.rdi, regs.rbp, regs.rsp);
-    kprintf("  r8 : 0x%.16llx  r9 :    0x%.16llx  r10: 0x%.16llx  r11: 0x%.16llx\n", regs.r8, regs.r9, regs.r10, regs.r11);
-    kprintf("  r12: 0x%.16llx  r13:    0x%.16llx  r14: 0x%.16llx  r15: 0x%.16llx\n", regs.r12, regs.r13, regs.r14, regs.r15);
-    kprintf("  rip: 0x%.16llx  rflags: 0x%.16llx\n", regs.rip, regs.rflags);
-    kprintf("  cs : 0x%.16llx  ss:     0x%.16llx  ds:  0x%.16llx  es:  0x%.16llx\n", regs.cs, regs.ss, regs.ds, regs.es);
-    kprintf("  cr0: 0x%.16llx  cr2:    0x%.16llx  cr3: 0x%.16llx  cr4: 0x%.16llx\n", regs.cr0, regs.cr2, regs.cr3, regs.cr4);
-    kprintf("  err: 0x%.16llx  vector: 0x%.16llx\n", regs.err, regs.vector);
+    crit("=== Kernel panic: '%s' @ 0x%.16llx ===", buf, regs.rip);
+    crit("Registers:");
+    crit("  rax: 0x%.16llx  rbx:    0x%.16llx  rcx: 0x%.16llx  rdx: 0x%.16llx", regs.rax, regs.rbx, regs.rcx, regs.rdx);
+    crit("  rsi: 0x%.16llx  rdi:    0x%.16llx  rbp: 0x%.16llx  rsp: 0x%.16llx", regs.rsi, regs.rdi, regs.rbp, regs.rsp);
+    crit("  r8 : 0x%.16llx  r9 :    0x%.16llx  r10: 0x%.16llx  r11: 0x%.16llx", regs.r8, regs.r9, regs.r10, regs.r11);
+    crit("  r12: 0x%.16llx  r13:    0x%.16llx  r14: 0x%.16llx  r15: 0x%.16llx", regs.r12, regs.r13, regs.r14, regs.r15);
+    crit("  rip: 0x%.16llx  rflags: 0x%.16llx", regs.rip, regs.rflags);
+    crit("  cs : 0x%.16llx  ss:     0x%.16llx  ds:  0x%.16llx  es:  0x%.16llx", regs.cs, regs.ss, regs.ds, regs.es);
+    crit("  cr0: 0x%.16llx  cr2:    0x%.16llx  cr3: 0x%.16llx  cr4: 0x%.16llx", regs.cr0, regs.cr2, regs.cr3, regs.cr4);
+    crit("  err: 0x%.16llx  vector: 0x%.16llx", regs.err, regs.vector);
 
     hcf();
 }
