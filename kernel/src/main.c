@@ -24,8 +24,9 @@ uint64_t __kernel_virt_base = 0;
 vma_context_t *kernel_vma_context = NULL;
 
 /* Scheduler test */
-void tick(struct register_ctx *)
+void tick(struct register_ctx * _unused)
 {
+    (void)_unused;
     trace_module("timer", "tick");
 }
 

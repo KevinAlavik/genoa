@@ -7,7 +7,7 @@ SRCDIR := src
 INCDIR := include
 OUTDIRS := $(OBJDIR) bin
 
-CC := cc
+CC := gcc
 CFLAGS := -g -O2 -pipe
 CPPFLAGS := -I $(SRCDIR) -I $(INCDIR) -MMD -MP
 NASMFLAGS := -F dwarf -g
