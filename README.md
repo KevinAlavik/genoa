@@ -1,6 +1,6 @@
 # Genoa
 
-Genoa is a minimal microkernel operating system written in C.  
+Genoa is an operating system written in C.  
 It serves as an experimental platform for learning microkernel design.
 
 ## Building
